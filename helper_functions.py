@@ -1,6 +1,7 @@
 # import libraries
 import os
 import math
+import glob
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.preprocessing import image
@@ -18,8 +19,7 @@ def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
             processed_filenames.append(filename)
     
     # delete this line when actually training!!!!!!!!!!!!!!!! only test code works for now
-    # only load 80% of data. Original data size is 234841.
-    processed_filenames = processed_filenames[:187872]
+    # processed_filenames = processed_filenames[:10000]
     
     # get each photo's target labels
     for filename in processed_filenames:
@@ -53,26 +53,17 @@ def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
     return np.array(processed_filenames), np.array(processed_labels)
 
 
-# def path_to_tensor(img_path):
-#     # loads RGB image as PIL.Image.Image type
-#     img = image.load_img(img_path, target_size=(224, 224))
-#     # convert PIL.Image.Image type to 3D tensor with shape (224, 224, 3)
-#     x = image.img_to_array(img)
-#     # convert 3D tensor to 4D tensor with shape (1, 224, 224, 3) and return 4D tensor
-#     return np.expand_dims(x, axis=0)
+def path_to_tensor(img_path):
+    # loads RGB image as PIL.Image.Image type
+    img = image.load_img(img_path, target_size=(224, 224))
+    # convert PIL.Image.Image type to 3D tensor with shape (224, 224, 3)
+    x = image.img_to_array(img)
+    # convert 3D tensor to 4D tensor with shape (1, 224, 224, 3) and return 4D tensor
+    return np.expand_dims(x, axis=0)
 
 
 def paths_to_tensor(img_folder, img_filenames):
-    # list_of_tensors = [path_to_tensor() ]
-    list_of_tensors = []
-    for img_filename in img_filenames:
-        img_path = img_folder + '/train_photos/' + img_filename
-        # loads RGB image as PIL.Image.Image type
-        img = image.load_img(img_path, target_size=(224, 224))
-        # convert PIL.Image.Image type to 3D tensor with shape (224, 224, 3)
-        x = image.img_to_array(img)
-        list_of_tensors.append(np.expand_dims(x, axis=0))
-
+    list_of_tensors = [path_to_tensor(img_folder + '/train_photos/' + img_filename) for img_filename in img_filenames]
     return np.vstack(list_of_tensors)
 
 
@@ -108,3 +99,11 @@ def print_images(tensors, datagen_train, title="Untitled"):
             # show the plot
             plt.show()
             break
+
+def load_bottleneck_features(filename):
+    result = []
+    npfiles = glob.glob("{}_*.npy".format(filename))
+    npfiles.sort()
+    return np.concatenate([np.load(npfile) for npfile in npfiles], axis=0)
+    
+    
