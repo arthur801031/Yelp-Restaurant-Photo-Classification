@@ -9,24 +9,21 @@ from sklearn.model_selection import train_test_split
 # user-defined functions, can be found in this directory
 from helper_functions import * 
 from extract_bottleneck_features import *
+from config import img_folder, num_images_per_batch, bottleneck_path
 
 
-img_folder = '../'
-# img_folder = "C:\\Users\\I-Chun Liu\\Documents\\Local_Code\\final_project\\data"
-
-train_photo_to_biz_ids = pd.read_csv(img_folder + '/train_photo_to_biz_ids.csv.tgz', compression='gzip', sep=',')
+train_photo_to_biz_ids = pd.read_csv(img_folder + 'train_photo_to_biz_ids.csv.tgz', compression='gzip', sep=',')
 train_photo_to_biz_ids.columns = ['train_photo_id', 'business_id']
 
-train_labels = pd.read_csv(img_folder + '/train.csv.tgz', compression='gzip', sep=',')
+train_labels = pd.read_csv(img_folder + 'train.csv.tgz', compression='gzip', sep=',')
 train_labels.columns = ['business_id', 'labels']
 
 print("loading dataset...")
-X_validation, y_validation = load_dataset(img_folder + '/train_photos', train_photo_to_biz_ids, train_labels, True, False)
+X_validation, y_validation = load_dataset(img_folder + 'train_photos', train_photo_to_biz_ids, train_labels, True, False)
 
 num_images = X_validation.shape[0]
 print("Validation set has {} samples.".format(num_images))
 
-num_images_per_batch = 10000
 i, prev_i, done, progress_bar, num_files = num_images_per_batch, 0, False, tqdm(total=math.ceil(num_images/num_images_per_batch)), 1
 
 while not done:
@@ -39,7 +36,7 @@ while not done:
         y_validation_parts = y_validation[prev_i:i]
     
     # conver RGB image to 4D tensor with shape (1, 244, 244, 3)
-    validation_tensors = paths_to_tensor(img_folder, X_validation_parts).astype('float32')/255
+    validation_tensors = paths_to_tensor(img_folder, 'train_photos', X_validation_parts).astype('float32')/255
     print("\n Validation tenors size: {}".format(validation_tensors.shape))
 
     # image pre-processing
@@ -59,10 +56,10 @@ while not done:
 
     print("Validation features shape: {}".format(validation_features.shape))
 
-    np.save('./bottleneck_features/Resnet50_validation_{}'.format(num_files), validation_features)
-    np.save('./bottleneck_features/Resnet50_validation-labels_{}'.format(num_files), y_validation_parts)
+    np.save(bottleneck_path + 'Resnet50_validation_{}'.format(num_files), validation_features)
+    np.save(bottleneck_path + 'Resnet50_validation-labels_{}'.format(num_files), y_validation_parts)
 
-    print("Successfully saved validation bottleneck features for Resnet50_validation_{}".format(i))
+    print("Successfully saved validation bottleneck features for Resnet50_validation_{}".format(num_files))
     prev_i = i
     i += num_images_per_batch
     num_files += 1

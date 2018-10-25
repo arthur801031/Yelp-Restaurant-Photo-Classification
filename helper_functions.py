@@ -4,9 +4,13 @@ import math
 import glob
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import f1_score
 from keras.preprocessing import image
+from keras.layers import Dense, GlobalAveragePooling2D
+from keras.models import Sequential
 from matplotlib import pyplot as plt
 
+from config import slash
 
 # load train and validation datasets
 def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
@@ -21,6 +25,10 @@ def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
     # delete this line when actually training!!!!!!!!!!!!!!!! only test code works for now
     # processed_filenames = processed_filenames[:10000]
     
+    if not photos_to_biz and not labels:
+        # we're dealing with test dataset, so just return it
+        return np.array(processed_filenames)
+
     # get each photo's target labels
     for filename in processed_filenames:
         bus_id = photos_to_biz.query('train_photo_id=={}'.format(filename.split(".", 1)[0]))['business_id']
@@ -53,6 +61,16 @@ def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
     return np.array(processed_filenames), np.array(processed_labels)
 
 
+def load_test_photo_ids(path):
+    processed_filenames = []
+    filenames = os.listdir(path=path)
+    for filename in filenames:
+        # remove filename that contains underscore
+        if '_' not in filename:
+            processed_filenames.append(filename.split(slash)[-1].split(".")[0]) # retrieve filename (excluding .jpg) from file path
+    return np.array(processed_filenames)
+
+
 def path_to_tensor(img_path):
     # loads RGB image as PIL.Image.Image type
     img = image.load_img(img_path, target_size=(224, 224))
@@ -62,8 +80,8 @@ def path_to_tensor(img_path):
     return np.expand_dims(x, axis=0)
 
 
-def paths_to_tensor(img_folder, img_filenames):
-    list_of_tensors = [path_to_tensor(img_folder + '/train_photos/' + img_filename) for img_filename in img_filenames]
+def paths_to_tensor(img_folder, foldername, img_filenames):
+    list_of_tensors = [path_to_tensor(img_folder + foldername + slash + img_filename) for img_filename in img_filenames]
     return np.vstack(list_of_tensors)
 
 
@@ -101,9 +119,65 @@ def print_images(tensors, datagen_train, title="Untitled"):
             break
 
 def load_bottleneck_features(filename):
-    result = []
     npfiles = glob.glob("{}_*.npy".format(filename))
     npfiles.sort()
     return np.concatenate([np.load(npfile) for npfile in npfiles], axis=0)
-    
-    
+
+
+def load_bottleneck_features_filenames(filename):
+    npfiles = glob.glob("{}_*.npy".format(filename))
+    npfiles.sort()
+    return npfiles
+
+
+def get_arr_train_valid_tuples(t_fname, t_labels_fname, v_fname, v_labels_fname):
+    train_filenames = load_bottleneck_features_filenames(t_fname)
+    train_labels_filenames = load_bottleneck_features_filenames(t_labels_fname)
+    validation_filenames = load_bottleneck_features_filenames(v_fname)
+    validation_labels_filenames = load_bottleneck_features_filenames(v_labels_fname)
+
+    train_i, valid_i = 0, 0
+    arr_train_valid_tuples = []
+    while train_i < len(train_filenames):
+        # validation files are smaller than train files, so we need to wrap around
+        if valid_i >= len(validation_filenames):
+            valid_i = 0
+
+        arr_train_valid_tuples.append(
+            (train_filenames[train_i],
+             train_labels_filenames[train_i],
+             validation_filenames[valid_i],
+             validation_labels_filenames[valid_i])
+        )
+
+        train_i += 1
+        valid_i += 1
+
+    return arr_train_valid_tuples
+
+
+def get_class_labels_from_probabilities(arr):
+    result = []
+    for item in arr:
+        if item >= 0.5:
+            result.append(1)
+        else:
+            result.append(0)
+    return result
+
+
+def calculate_meanf1(predict_labels_probs, true_labels):
+    predict_labels = []
+    for p_label in predict_labels_probs:
+        predict_labels.append(get_class_labels_from_probabilities(p_label))
+
+    return f1_score(true_labels, np.array(predict_labels), average='macro')
+
+
+def Model(input_shape):
+    model = Sequential()
+    model.add(GlobalAveragePooling2D(input_shape=input_shape))
+    model.add(Dense(9, activation='sigmoid'))
+    # model.compile(loss='binary_crossentropy', optimizer='rmsprop')
+    model.compile(loss='binary_crossentropy', optimizer='sgd')
+    return model
