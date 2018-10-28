@@ -65,9 +65,7 @@ def load_from_files():
     return result_dict, result_dict_probs
 
 
-
-
-# result_dict, result_dict_probs = start_predict_from_scratch()
+result_dict, result_dict_probs = start_predict_from_scratch()
 result_dict, result_dict_probs = load_from_files()
 
 
@@ -77,7 +75,7 @@ for bus_id in result_dict_probs:
     if len(arrs) > 0:
         bus_id_labels_average = np.mean(arrs, axis=0)       # get the average probabilities for each predicted labels for this business id
         for idx, label_prob in enumerate(bus_id_labels_average):
-            if label_prob >= 0.496:
+            if label_prob >= 0.488:
                 final_bus_label += str(idx) + " "
         final_bus_label = final_bus_label.strip()           # remove trailing space(s)
         result_dict[bus_id] = final_bus_label

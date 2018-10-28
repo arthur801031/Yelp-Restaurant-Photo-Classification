@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import f1_score
 from keras.preprocessing import image
-from keras.layers import Dense, GlobalAveragePooling2D
+from keras.layers import Dense, GlobalAveragePooling2D, MaxPooling2D, Flatten, Dropout
 from keras.models import Sequential
 from matplotlib import pyplot as plt
 
@@ -25,7 +25,7 @@ def load_dataset(path, photos_to_biz, labels, should_split, return_train=True):
     # delete this line when actually training!!!!!!!!!!!!!!!! only test code works for now
     # processed_filenames = processed_filenames[:10000]
     
-    if not photos_to_biz and not labels:
+    if  photos_to_biz is None and labels is None:
         # we're dealing with test dataset, so just return it
         return np.array(processed_filenames)
 
@@ -178,6 +178,5 @@ def Model(input_shape):
     model = Sequential()
     model.add(GlobalAveragePooling2D(input_shape=input_shape))
     model.add(Dense(9, activation='sigmoid'))
-    # model.compile(loss='binary_crossentropy', optimizer='rmsprop')
-    model.compile(loss='binary_crossentropy', optimizer='sgd')
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop')
     return model

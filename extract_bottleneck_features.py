@@ -1,4 +1,3 @@
-
 def extract_VGG16(tensor):
     from keras.applications.vgg16 import VGG16, preprocess_input
     print("processing tensor...")
