@@ -24,7 +24,7 @@ The datasets can be found [here](https://www.kaggle.com/c/yelp-restaurant-photo-
 
 `bottleneck_path` is where you want your bottleneck features to be stored.
 
-`slash` is '\\' for Windows OS and '/' for Unix/Mac OS.
+`slash` is `'\\'` for Windows OS and `'/'` for Unix/Mac OS.
 
 **Step 2:** Extract training dataset's bottleneck features:
 ```
