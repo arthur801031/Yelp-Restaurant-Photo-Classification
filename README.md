@@ -20,7 +20,7 @@ The datasets can be found [here](https://www.kaggle.com/c/yelp-restaurant-photo-
 ### How to run:
 **Step 1:** Change `config.py`:
 
-`img_folder` is the filepath that contains the datasets.
+`img_folder` is the file path that contains the datasets.
 
 `bottleneck_path` is where you want your bottleneck features to be stored.
 
