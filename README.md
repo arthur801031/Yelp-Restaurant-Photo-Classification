@@ -13,6 +13,7 @@ Create a conda environment with the following packages:
 * Matplotlib
 * Tqdm
 * Glob
+* opencv-python [optional: only use in Visualization.ipynb]
 
 ### Datasets:
 The datasets can be found [here](https://www.kaggle.com/c/yelp-restaurant-photo-classification/data).
